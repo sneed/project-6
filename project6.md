@@ -17,7 +17,7 @@ Generally, web, or mobile solutions are implemented based on what is called the 
 
 **Three-tier Architecture** is a client-server software architecture pattern that comprise of 3 separate layers.
 
-![Three-Tier Architecture](../images/Three_Tier-Architecture.png)
+![Three-Tier Architecture](images/Three_Tier-Architecture.png)
 
 1. **Presentation Layer** (PL): This is the user interface such as the client server or browser on your laptop.
 2. **Business Layer** (BL): This is the backend program that implements business logic. Application or Webserver
@@ -51,41 +51,41 @@ Note: for Ubuntu server, when connecting to it via SSH/Putty or any other tool, 
 1. Launch an EC2 instance that will serve as "Web Server". Create 3 volumes in the same AZ as your Web Server EC2, each of 10 GiB.
 Learn How to Add EBS Volume to an EC2 instance [here](https://www.youtube.com/watch?v=HPXnXkBzIHw)
 
-![Web server](../images/ec2-webserver.png)
+![Web server](images/ec2-webserver.png)
 
 2. Attach all three volumes one by one to your Web Server EC2 instance
 
-![Three volumes](../images/3volumes-ec2instance.png)
+![Three volumes](images/3volumes-ec2instance.png)
 
 Open up the Linux terminal to begin configuration
 
 3. Use [lsblk](https://man7.org/linux/man-pages/man8/lsblk.8.html) command to inspect what block devices are attached to the server. Notice names of your newly created devices. All devices in Linux reside in /dev/ directory. Inspect it with <mark>ls /dev/</mark> and make sure you see all 3 newly created block devices there – their names will likely be <mark>xvdf, xvdh, xvdg</mark>.
 
-![lsblk](../images/lsblk-3vol.png)
+![lsblk](images/lsblk-3vol.png)
 
 
 4. Use [df -h](https://en.wikipedia.org/wiki/Df_(Unix)) command to see all mounts and free space on your server
 
-![df -h](../images/df-h.png)
+![df -h](images/df-h.png)
 
 
 5. Use <mark>gdisk</mark> utility to create a single partition on each of the 3 disks
 <mark>sudo gdisk /dev/xvdf</mark>
 
-![gdisk](../images/gdisk-3.png)
+![gdisk](images/gdisk-3.png)
 
 Use <mark>lsblk</mark> utility to view the newly configured partition on each of the 3 disks.
 
-![lsblk](../images/lsblk1.png)
+![lsblk](images/lsblk1.png)
 
 
 6. Install [lvm2](https://en.wikipedia.org/wiki/Logical_Volume_Manager_(Linux)) package using <mark>sudo yum install lvm2</mark>. Run <mark>sudo lvmdiskscan</mark> command to check for available partitions.
 
 **Note:** Previously, in Ubuntu we used <mark>apt</mark> command to install packages, in RedHat/CentOS a different package manager is used, so we shall use <mark>yum</marl> command instead.
 
-![LVM install](../images/install-lvm.png)
+![LVM install](images/install-lvm.png)
 
-![LVM disc scan](../images/lvmdiskscan.png)
+![LVM disc scan](images/lvmdiskscan.png)
 
 7. Use [pvcreate](https://linux.die.net/man/8/pvcreate) utility to mark each of 3 disks as physical volumes (PVs) to be used by LVM
 
@@ -95,23 +95,23 @@ sudo pvcreate /dev/xvdg1
 sudo pvcreate /dev/xvdh1
 ```
 
-![pvcreate](../images/pvcreate.png)
+![pvcreate](images/pvcreate.png)
 
 
 8. Verify that your Physical volume has been created successfully by running <mark>sudo pvs</mark>
 
-![verify with sudo pvs](../images/sudo-pvs.png)
+![verify with sudo pvs](images/sudo-pvs.png)
 
 
 9. Use [vgcreate](https://linux.die.net/man/8/vgcreate) utility to add all 3 PVs to a volume group (VG). Name the VG **webdata-vg**
 
 `sudo vgcreate webdata-vg /dev/xvdh1 /dev/xvdg1 /dev/xvdf1`
 
-![add all 3 PVs to a volume group](../images/vgcreate.png)
+![add all 3 PVs to a volume group](images/vgcreate.png)
 
 10. Verify that your VG has been created successfully by running <mark>sudo vgs</mark>
 
-![sudo vgs](../images/sudo-vgs.png)
+![sudo vgs](images/sudo-vgs.png)
 
 
 11. Use [lvcreate](![alt text](image.jpg)) utility to create 2 logical volumes. **apps-lv (Use half of the PV size)**, and **logs-lv Use the remaining space of the PV size. NOTE:** apps-lv will be used to store data for the Website while, logs-lv will be used to store data for logs.
@@ -121,11 +121,11 @@ sudo lvcreate -n apps-lv -L 14G webdata-vg
 sudo lvcreate -n logs-lv -L 14G webdata-vg
 ```
 
-![Create logical volumes](../images/lvcreate.png)
+![Create logical volumes](images/lvcreate.png)
 
 12. Verify that your Logical Volume has been created successfully by running <mark>sudo lvs</mark>
 
-![Verify logical Volumes](../images/verify-logicalvolumes.png)
+![Verify logical Volumes](images/verify-logicalvolumes.png)
 
 13. Verify the entire setup
 
@@ -134,9 +134,9 @@ sudo vgdisplay -v #view complete setup - VG, PV, and LV
 sudo lsblk 
 ```
 
-![Verify entire setup](../images/verify-entiresetup.png)
+![Verify entire setup](images/verify-entiresetup.png)
 
-![Verify entire setup](../images/verify-entiresetup1.png)
+![Verify entire setup](images/verify-entiresetup1.png)
 
 14. Use <mark>mkfs.ext4</mark> to format the logical volumes with [ext4](https://en.wikipedia.org/wiki/Ext4) filesystem
 
@@ -145,7 +145,7 @@ sudo mkfs -t ext4 /dev/webdata-vg/apps-lv
 sudo mkfs -t ext4 /dev/webdata-vg/logs-lv
 ```
 
-![Formatt Logical vol with ext4 file sys](../images/formatlv-withext4.png)
+![Formatt Logical vol with ext4 file sys](images/formatlv-withext4.png)
 
 
 15. Create **/var/www/html** directory to store website files
@@ -167,7 +167,7 @@ sudo mkfs -t ext4 /dev/webdata-vg/logs-lv
    
 `sudo rsync -av /var/log/. /home/recovery/logs/`
 
-![rsync utility](../images/rsync-utility.png)
+![rsync utility](images/rsync-utility.png)
 
 
 19. Mount **/var/log** on **logs-lv** logical volume. (Note that all the existing data on /var/log will be deleted. That is why step 15 above is very
@@ -180,7 +180,7 @@ sudo mkfs -t ext4 /dev/webdata-vg/logs-lv
 
 `sudo rsync -av /home/recovery/logs/. /var/log`
 
-![restore log files](../images/restore-logfiles.png)
+![restore log files](images/restore-logfiles.png)
 
 
 21. Update <mark>/etc/fstab file</mark> so that the mount configuration will persist after restart of the server.
@@ -198,7 +198,7 @@ sudo mkfs -t ext4 /dev/webdata-vg/logs-lv
 
 Update <mark>/etc/fstab</mark> in this format using your own UUID and rememeber to remove the leading and ending quotes.
 
-![Update file](../images/Update-etcfstab.png)
+![Update file](images/Update-etcfstab.png)
 
 Test the configuration and reload the daemon
 ```
@@ -206,12 +206,12 @@ sudo mount -a
 sudo systemctl daemon-reload
 ```
 
-![Test config and reload](../images/mount_daemon-reload.png)
+![Test config and reload](images/mount_daemon-reload.png)
 
 
 Verify your setup by running df -h, output must look like this
 
-![Setup verification](../images/verify-setup.png)
+![Setup verification](images/verify-setup.png)
 
 
 ### Step 2 — Prepare the Database Server
@@ -219,7 +219,7 @@ Verify your setup by running df -h, output must look like this
 Launch a second RedHat EC2 instance that will have a role – ‘DB Server’
 Repeat the same steps as for the Web Server, but instead of <mark>apps-lv</mark> create <mark>db-lv</mark> and mount it to <mark>/db</mark> directory instead of <mark>/var/www/html/</mark>.
 
-![Prep db server](../images/prep-dbserver.png)
+![Prep db server](images/prep-dbserver.png)
 
 ### Step 3 — Install WordPress on your Web Server EC2
 
@@ -227,14 +227,14 @@ Repeat the same steps as for the Web Server, but instead of <mark>apps-lv</mark>
 
 `sudo yum -y update`
 
-![Update repo](../images/install-update.png)
+![Update repo](images/install-update.png)
 
 
 2. Install wget, Apache and it’s dependencies
 
 `sudo yum -y install wget httpd php php-mysqlnd php-fpm php-json`
 
-![apache installation](../images/apache-dependencies.png)
+![apache installation](images/apache-dependencies.png)
 
 
 3. Start Apache
@@ -244,7 +244,7 @@ sudo systemctl enable httpd
 sudo systemctl start httpd
 ```
 
-![Start Apache](../images/start-spache.png)
+![Start Apache](images/start-spache.png)
 
 
 4. To install PHP and it’s depemdencies
@@ -261,7 +261,7 @@ sudo systemctl enable php-fpm
 setsebool -P httpd_execmem 1
 ```
 
-![PHP dependencies](../images/installphp-dependencies.png)
+![PHP dependencies](images/installphp-dependencies.png)
 
 
 5. Restart Apache
@@ -280,7 +280,7 @@ cp wordpress/wp-config-sample.php wordpress/wp-config.php
 cp -R wordpress /var/www/html/
 ```
 
-![copy wordpress](../images/copy-wordpress.png)
+![copy wordpress](images/copy-wordpress.png)
 
 
 7. Configure SELinux Policies
@@ -299,7 +299,7 @@ sudo yum update
 sudo yum install mysql-server
 ```
 
-![Install mysql ](../images/installmysql-dbserver.png)
+![Install mysql ](images/installmysql-dbserver.png)
 
 
 Verify that the service is up and running by using sudo systemctl status mysqld, if it is not running, restart the service and enable it so it will be running even after reboot:
@@ -309,7 +309,7 @@ sudo systemctl restart mysqld
 sudo systemctl enable mysqld
 ```
 
-![sqlserver-status](../images/mysql-status.png)
+![sqlserver-status](images/mysql-status.png)
 
 
 ### Step 5 — Configure DB to work with WordPress
@@ -324,13 +324,13 @@ SHOW DATABASES;
 exit
 ````
 
-![configurec db](../images/configuredb-wordpress.png)
+![configurec db](images/configuredb-wordpress.png)
 
 ### Step 6 — Configure WordPress to connect to remote database.
 Hint: Do not forget to open MySQL port 3306 on DB Server EC2. For extra security, you shall allow access to the DB server ONLY from your Web Server’s IP address, so in the Inbound Rule configuration specify source as /32
 
 
-![Open mysql port 3306](../images/open-port3306.png)
+![Open mysql port 3306](images/open-port3306.png)
 
 1. Install MySQL client and test that you can connect from your Web Server to your DB server by using <mark>mysql-client</mark>
 ``
@@ -338,9 +338,9 @@ sudo yum install mysql
 sudo mysql -u admin -p -h <DB-Server-Private-IP-address>
 ``
 
-![Connect Web server to DB](../images/webserver2-dbserver.png)
+![Connect Web server to DB](images/webserver2-dbserver.png)
 
-![existing db](../images/existing-DB.png)
+![existing db](images/existing-DB.png)
 
 
 2. Verify if you can successfully execute <mark>SHOW DATABASES;</mark> command and see a list of existing databases.
@@ -348,18 +348,18 @@ sudo mysql -u admin -p -h <DB-Server-Private-IP-address>
 4. Enable TCP port 80 in Inbound Rules configuration for your Web Server EC2 (enable from everywhere 0.0.0.0/0 or from your workstation’s IP)
 5. Try to access from your browser the link to your WordPress <mark>http://<Web-Server-Public-IP-Address>/wordpress/</mark>
 
-![Word press browser link](../images/wordpress-browserlink.png)
+![Word press browser link](images/wordpress-browserlink.png)
 
 
 Fill out your DB credentials:
 
 
-![DB credentials](../images/db-credentials.png)
+![DB credentials](images/db-credentials.png)
 
 
 If you see this message – it means your WordPress has successfully connected to your remote MySQL database
 
-![Wordpress connected to db](../images/wordpress-connected.png)
+![Wordpress connected to db](images/wordpress-connected.png)
 
 
 **Important:** Do not forget to **STOP** your EC2 instances after completion of the project to avoid extra costs.
